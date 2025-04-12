@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase JavaScript Project</title>
+</head>
+<body>
+    <h1>Firebase Connect</h1>
+    <div id="patientRows"></div>
+
+    <!-- No need for multiple <script src> for modules -->
+    <script type="module">
+       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+       import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  
+    // Your Firebase config
+       const firebaseConfig = {
+         apiKey: "AIzaSyB3-pM-dr_HGXpLyE-vxXCrJn8vPUnw37Q",
+         authDomain: "rn-firebase-ml-test.firebaseapp.com",
+         databaseURL: "https://rn-firebase-ml-test-default-rtdb.firebaseio.com",
+         projectId: "rn-firebase-ml-test",
+         storageBucket: "rn-firebase-ml-test.firebasestorage.app",
+         messagingSenderId: "964593574138",
+         appId: "1:964593574138:web:815a05431b322d81312943",
+         measurementId: "G-CR54SS9S8P"
+       };
+  
+       // Initialize Firebase and Firestore
+       const app = initializeApp(firebaseConfig);
+       const db = getFirestore(app);
+
+       const container = document.getElementById("patientRows");
+
+       // Recursive function to handle nested fields
+       function displayNestedData(key, value, parentElement) {
+          const wrapper = document.createElement("div");
+          wrapper.style.marginLeft = "20px"; // Indent nested items
+
+           if (typeof value === "object" && value !== null) {
+               const nestedTitle = document.createElement("strong");
+               nestedTitle.textContent = `${key}:`;
+               wrapper.appendChild(nestedTitle);
+
+              // Recurse into nested fields
+               for (const [subKey, subValue] of Object.entries(value)) {
+                   displayNestedData(subKey, subValue, wrapper);
+                }
+            } else {
+               const p = document.createElement("p");
+               p.textContent = `${key}: ${value}`;
+               wrapper.appendChild(p);
+            }
+
+            parentElement.appendChild(wrapper);
+        }
+
+        async function fetchAndDisplayData() {
+           const querySnapshot = await getDocs(collection(db, "patientData"));
+
+           querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              const wrapper = document.createElement("div");
+              wrapper.style.borderBottom = "1px solid #ccc";
+              wrapper.style.padding = "10px 0";
+
+              const id = document.createElement("p");
+              id.innerHTML = `<strong>Patient ID:</strong> ${doc.id}`;
+              wrapper.appendChild(id);
+
+               // Loop through each field in the document data
+              for (const [key, value] of Object.entries(data)) {
+              displayNestedData(key, value, wrapper);
+              }
+
+              container.appendChild(wrapper);
+            });
+        }
+
+       fetchAndDisplayData();
+   </script>
+       
+</body>
+</html>
