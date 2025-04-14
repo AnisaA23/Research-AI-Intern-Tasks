@@ -1,0 +1,27 @@
+body {margin:0;}
+
+.navbar {
+  overflow: hidden;
+  background-color: rgb(166, 0, 111);
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.navbar a {
+  float: left;
+  display: block;
+  color: white;
+  text-align: center;
+  padding-top: 14px;
+  padding-bottom: 14px;  
+  text-decoration: none;
+  font-size: 2.2vw;
+  width: 20%;
+  font-family: Spectral, serif;
+}
+
+.navbar a:hover {
+  background: rgb(145, 0, 102);
+  color: white;
+}
