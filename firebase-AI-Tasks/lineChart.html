@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Firebase JavaScript Project</title>
+</head>
+<body>
+    <div class="navbar">
+        <a style="display: inline-block;background-color: rgb(166, 0, 111);color:white;">Patient Data</a>
+        <a href="index.html">Home</a>
+        <a href="lineChart.html">Line Graphs</a>
+        <a href="">1</a>
+        <a href="">1</a>
+      </div>
+    <br>
+    <br>
+    <br>
+    <br>  
+    <h1>Line Graph to show trends in the data</h1>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <canvas id="myChart" width="500" height="200"></canvas>
+
+    <script type="module" src="connection.js"></script>
+    <script type="module">
+
+        import { db } from './connection.js'; 
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        async function getData() {
+            const querySnapshot = await getDocs(collection(db, 'patientData')); 
+            const data = [];
+    
+            querySnapshot.forEach((doc) => {
+                const date = doc.data().date; 
+                const sleepDurations = doc.data().sleep_duration_hours; 
+        
+                data.push({ date, sleepDurations });
+            });
+
+            return data;
+        }
+
+        export default getData;
+
+        async function createLineGraph() {
+
+        const rawData = await getData();
+
+        rawData.sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+    
+        const labels = rawData.map(item => new Date(item.date).toLocaleDateString()); 
+        const sleepDurations = rawData.map(item => item.sleepDuration); 
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+    
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels, // x-axis (dates)
+                datasets: [{
+                    label: 'Sleep Duration (hours)', // y-axis label
+                    data: sleepDurations, // y-axis (sleep_duration_hours)
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        },
+                        ticks: {
+                           autoSkip: true,
+                           maxRotation: 45,
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Sleep Duration (hours)'
+                        },
+                        beginAtZero: true, 
+                        min: 0,
+                        max: 10,
+                        }
+                   }
+               }
+           });
+       }
+
+       createLineGraph();
+
+    </script>
+
+
+</body>
+</html>
