@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Firebase JavaScript Project</title>
+</head>
+<body>
+    <div class="navbar">
+        <a style="display: inline-block;background-color: rgb(166, 0, 111);color:white;">Patient Data</a>
+        <a href="index.html">Home</a>
+        <a href="lineChart.html">Line Graphs</a>
+        <a href="barChart.html">Bar Charts</a>
+        <a href="tables.html">Tables</a>
+      </div>
+    <br>
+    <br>
+    <br>
+    <br>  
+    <h1>Tables to show trends in the data</h1>
+    <table id="sleepTable" border="1">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+
+    <script type="module" src="connection.js"></script>
+    <script type="module">
+        import { db } from './connection.js';
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+      
+        async function getSleepTableData() {
+          const snapshot = await getDocs(collection(db, 'patientData'));
+          const tableData = {};
+          const allDates = [];
+      
+          snapshot.forEach((doc) => {
+            const docData = doc.data();
+            const sleep = docData.sleep || {};
+      
+            let rawDate = docData.date;
+      
+            if (rawDate && typeof rawDate.toDate === 'function') {
+              rawDate = rawDate.toDate().toISOString().split('T')[0];
+            } else if (typeof rawDate === 'string') {
+              rawDate = new Date(rawDate).toISOString().split('T')[0];
+            } else {
+              rawDate = null;
+            }
+      
+            if (rawDate) {
+              allDates.push(rawDate);
+      
+              for (const key in sleep) {
+                if (key === "date") continue;
+      
+                if (!tableData[key]) {
+                  tableData[key] = {};
+                }
+      
+                tableData[key][rawDate] = sleep[key];
+              }
+            }
+          });
+      
+          return { tableData, allDates };
+        }
+      
+        function renderSleepTable({ tableData, allDates }) {
+          const table = document.getElementById("sleepTable");
+          const thead = table.querySelector("thead");
+          const tbody = table.querySelector("tbody");
+      
+          thead.innerHTML = "";
+          tbody.innerHTML = "";
+      
+          const uniqueDates = [...new Set(allDates)].sort();
+      
+          const headerRow = document.createElement("tr");
+          headerRow.innerHTML = `<th>Sleep Metric</th>` + uniqueDates.map(date => `<th>${date}</th>`).join('');
+          thead.appendChild(headerRow);
+      
+          for (const topic in tableData) {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${topic}</td>` + uniqueDates.map(date => `<td>${tableData[topic][date] ?? '-'}</td>`).join('');
+            tbody.appendChild(row);
+          }
+        }
+      
+        getSleepTableData().then(renderSleepTable);
+      </script>
+
+
+</body>
+</html>
