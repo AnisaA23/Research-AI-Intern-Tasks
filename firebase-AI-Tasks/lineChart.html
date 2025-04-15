@@ -11,8 +11,8 @@
         <a style="display: inline-block;background-color: rgb(166, 0, 111);color:white;">Patient Data</a>
         <a href="index.html">Home</a>
         <a href="lineChart.html">Line Graphs</a>
-        <a href="">1</a>
-        <a href="">1</a>
+        <a href="barChart.html">Bar Charts</a>
+        <a href="tables.html">Tables</a>
       </div>
     <br>
     <br>
@@ -31,67 +31,84 @@
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
         async function getData() {
-            const querySnapshot = await getDocs(collection(db, 'patientData')); 
-            const data = [];
-    
-            querySnapshot.forEach((doc) => {
-                const date = doc.data().date; 
-                const sleepDurations = doc.data().sleep_duration_hours; 
-        
-                data.push({ date, sleepDurations });
+           const querySnapshot = await getDocs(collection(db, 'patientData')); 
+           const data = [];
+
+           querySnapshot.forEach((doc) => {
+               const docData = doc.data();
+               const sleep = docData.sleep || {};
+
+               let rawDate = docData.date;
+
+                if (rawDate && typeof rawDate.toDate === 'function') {
+                   rawDate = rawDate.toDate().toISOString();
+                } else if (typeof rawDate === 'string') {
+                   rawDate = new Date(rawDate).toISOString();
+                } else {
+                   rawDate = null;
+                }
+
+                if (rawDate && sleep.duration_hours != null) {
+                   data.push({ 
+                       date: rawDate, 
+                       sleepDuration: sleep.duration_hours 
+                    });
+                }
             });
 
-            return data;
+             return data;
         }
 
         export default getData;
 
         async function createLineGraph() {
-
-        const rawData = await getData();
-
-        rawData.sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+           const rawData = await getData();
+           rawData.sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     
-        const labels = rawData.map(item => new Date(item.date).toLocaleDateString()); 
-        const sleepDurations = rawData.map(item => item.sleepDuration); 
+           const labels = rawData.map(item => new Date(item.date).toLocaleDateString()); 
+           const sleepDurations = rawData.map(item => item.sleepDuration); 
+ 
+           console.log("RawData:", rawData);
+           console.log("Labels:", labels);
+           console.log("SleepDurations:", sleepDurations);
 
-        const ctx = document.getElementById('myChart').getContext('2d');
+           const ctx = document.getElementById('myChart').getContext('2d');
     
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels, // x-axis (dates)
-                datasets: [{
-                    label: 'Sleep Duration (hours)', // y-axis label
-                    data: sleepDurations, // y-axis (sleep_duration_hours)
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    fill: false,
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        },
-                        ticks: {
-                           autoSkip: true,
-                           maxRotation: 45,
+           new Chart(ctx, {
+               type: 'line',  // Line for line graph
+               data: {
+                   labels: labels, // x-axis (dates)
+                   datasets: [{
+                       label: 'Sleep Duration (hours)', // y-axis label
+                       data: sleepDurations, // y-axis (sleep_duration_hours)
+                       borderColor: 'rgba(75, 192, 192, 1)',
+                       fill: false,
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   scales: {
+                       x: {
+                           title: {
+                               display: true,
+                               text: 'Date'
+                           },
+                           ticks: {
+                              autoSkip: true,
+                              maxRotation: 45,
+                           }
+                       },
+                       y: {
+                           title: {
+                               display: true,
+                               text: 'Sleep Duration (hours)'
+                           },
+                           beginAtZero: true, 
+                           min: 0,
+                           max: 10,
                         }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Sleep Duration (hours)'
-                        },
-                        beginAtZero: true, 
-                        min: 0,
-                        max: 10,
-                        }
-                   }
-               }
+                    }
+                }
            });
        }
 
