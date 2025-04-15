@@ -8,5 +8,5 @@ Mandatory Tasks:
  - Task 3
     - Download Predict Patient Health Categories.ipynb AND test_data.csv (as the Python script is linked to the CSV file)
     - Open it into Visual Studio Code to be able to view it. 
-    - Have the kernel set to a python environment to be able to run the code. 
+    - Have the kernel set to a python environment to be able to run the code by pressing 'Run All' at the top. 
     - Documentation for task 3 is within the Jupyter Notebook at the end.
